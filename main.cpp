@@ -145,9 +145,9 @@ int  cs_communcate(void)
 {  
     int re_recv = -1;  
     int i = 0;  
-    unsigned char* p_server = NULL; //指向收到服务器数据的指针  
+    char* p_server = NULL; //指向收到服务器数据的指针  
   
-    unsigned char server_data[MAX_RECEIVE];  //接收到的服务数据  
+    char server_data[MAX_RECEIVE];  //接收到的服务数据  
     unsigned char server_negonation[NEGONATION_LENTH];  
       
     re_recv = recv(sockfd, server_data, MAX_RECEIVE, 0); //接收服务器发来的数据 
@@ -170,16 +170,24 @@ int  cs_communcate(void)
 		putc(*p_server,stdout);
                 deal_lenth++;
                 p_server++;
-		 
             }  
-        }     
+        }
     }  
-    cout<<flush;//缓冲区的刷新
-    send(sockfd, "admin\n", strlen("admin\n"), 0); 
+    /*
     send(sockfd, "cisco\n", strlen("cisco\n"), 0); 
     send(sockfd, "en\n", strlen("en\n"), 0); 
     send(sockfd, "cisco\n", strlen("cisco\n"), 0); 
-    send(sockfd, "show run\n", strlen("show run\n"), 0); 
+    send(sockfd, "show run\n", strlen("show run\n"), 0);
+    */ 
+        const char *username ="Username:";
+	const char *password ="";
+	//cout <<"weizhi:"<<strstr(server_data,username)<<endl;
+	cout<<"-----------:"<<server_data<<endl;
+        if (strstr(server_data,username))
+        {
+	    send(sockfd, "admin\n", strlen("admin\n"), 0); 
+        }
+	    cout<<flush;//缓冲区的刷新
     return 0;  
       
 }  
@@ -197,8 +205,8 @@ int main(int argc, char** argv)
     {  
         return -1;  
     }  
-    fcntl(sockfd, F_SETFL, fcntl(sockfd, F_GETFL) | O_NONBLOCK); //设置SOCKET文件为非阻塞方式  
-    fcntl(STD_IN, F_SETFL, fcntl(sockfd, F_GETFL) | O_NONBLOCK); //设置标准输入文件为非阻塞方式  
+    //fcntl(sockfd, F_SETFL, fcntl(sockfd, F_GETFL) | O_NONBLOCK); //设置SOCKET文件为非阻塞方式  
+    //fcntl(STD_IN, F_SETFL, fcntl(sockfd, F_GETFL) | O_NONBLOCK); //设置标准输入文件为非阻塞方式  
     while (telnet_connect)  //当将sockfd和标准输入输出STD_IN设置为非阻塞后，如果一方收到数据则继续接收，如果两方都收不到数据则效果为等待从键盘输入数据何等待接收  
     { 
         if(cs_communcate() < 0)  //处理服务发来的数据  
