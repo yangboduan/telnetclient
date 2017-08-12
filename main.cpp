@@ -10,7 +10,7 @@
 #include <fcntl.h>  
 #include <errno.h>  
 
-using namespace std;  
+using namespace std;
 #define MAX_PARAMTER 3  //参数个数  
 /*TELNET命令*/  
 #define IAC 255    //TELNET协商语句以此开头  
@@ -150,7 +150,7 @@ int  cs_communcate(void)
     unsigned char server_data[MAX_RECEIVE];  //接收到的服务数据  
     unsigned char server_negonation[NEGONATION_LENTH];  
       
-    re_recv = recv(sockfd, server_data, MAX_RECEIVE, 0); //接收服务器发来的数据  
+    re_recv = recv(sockfd, server_data, MAX_RECEIVE, 0); //接收服务器发来的数据 
     if (re_recv > 0)  
     { 
         int deal_lenth = 0;  
@@ -166,50 +166,24 @@ int  cs_communcate(void)
                 deal_lenth += NEGONATION_LENTH;  
             }  
             else                                                 //如果是服务器发来的数据则把它显示到终端上  
-            {  
-                 cout << p_server;
-                //write(STD_IN, p_server, strlen(p_server) + 1);  
-                deal_lenth = re_recv;                            //认为收到的如果为数据则它在一包的最后，或者独立为一包数据  
+            {
+		putc(*p_server,stdout);
+                deal_lenth++;
+                p_server++;
+		 
             }  
         }     
-  
     }  
-  
+    cout<<flush;//缓冲区的刷新
+    send(sockfd, "admin\n", strlen("admin\n"), 0); 
+    send(sockfd, "cisco\n", strlen("cisco\n"), 0); 
+    send(sockfd, "en\n", strlen("en\n"), 0); 
+    send(sockfd, "cisco\n", strlen("cisco\n"), 0); 
+    send(sockfd, "show run\n", strlen("show run\n"), 0); 
     return 0;  
       
 }  
   
-int send_usrcommand()  
-{  
-    int i = 0;  
-    char usr_command[MAX_COMMAND];  //终端发送的用户命令（不是TELNET协议中的命令）  
-  
-    if (read(STD_IN, usr_command, MAX_COMMAND) > 0) //如果读取用户命令成功则将其发送给服务器  
-    {  
-        fflush(stdout);  //清空输出缓冲区的内容，这样用户可以一次发送带空格的命令  
-  
-        if (!strcmp(usr_command, "exit\n"))    //如果输入字符串为exit则断开TELNET控制连接  
-        {  
-                telnet_connect = 0;  
-                close(sockfd);  
-                return 0;  
-        }  
-  
-        if (send(sockfd, usr_command, strlen(usr_command) - 1, 0) < 0) //发送命令但不发送回车符  
-        {  
-            printf("Send usr command error\n");  
-            return -1;  
-        }  
-        if (send(sockfd, "\r\n", 2, 0) < 0)   //NVT中以换行回车作为一个命令的结束（NVT用于在TELNET中连接不同操作系统,nvtasc码的转换由操作系统实现）  
-        {  
-            printf("Send usr command error\n");  
-            return -1;  
-        }  
-          
-    }  
-  
-    return 0;  
-}  
   
 int main(int argc, char** argv)  
 {  
@@ -223,17 +197,11 @@ int main(int argc, char** argv)
     {  
         return -1;  
     }  
-     cs_communcate(); 
-    //fcntl(sockfd, F_SETFL, fcntl(sockfd, F_GETFL) | O_NONBLOCK); //设置SOCKET文件为非阻塞方式  
-    //fcntl(STD_IN, F_SETFL, fcntl(sockfd, F_GETFL) | O_NONBLOCK); //设置标准输入文件为非阻塞方式  
+    fcntl(sockfd, F_SETFL, fcntl(sockfd, F_GETFL) | O_NONBLOCK); //设置SOCKET文件为非阻塞方式  
+    fcntl(STD_IN, F_SETFL, fcntl(sockfd, F_GETFL) | O_NONBLOCK); //设置标准输入文件为非阻塞方式  
     while (telnet_connect)  //当将sockfd和标准输入输出STD_IN设置为非阻塞后，如果一方收到数据则继续接收，如果两方都收不到数据则效果为等待从键盘输入数据何等待接收  
     { 
         if(cs_communcate() < 0)  //处理服务发来的数据  
-        {  
-            close(sockfd);  
-            return -1;  
-        }  
-        if (send_usrcommand() < 0) //处理终端用户发来的命令  
         {  
             close(sockfd);  
             return -1;  
