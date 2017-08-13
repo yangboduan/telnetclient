@@ -151,7 +151,7 @@ int  cs_communcate(void)
     char server_data[MAX_RECEIVE];  //接收到的服务数据  
     memset(server_data,0,MAX_RECEIVE);//清空缓存区的数据，防止之前遗留在缓存区的数据影响输出结果的正确性
     unsigned char server_negonation[NEGONATION_LENTH];  
-      
+    memset(server_negonation,0,NEGONATION_LENTH); 
     re_recv = recv(sockfd, server_data, MAX_RECEIVE, 0); //recv函数返回其实际copy的字节数，即接收服务器发来的字节数 
     if (re_recv > 0) //如果接收到了服务器发送过来的数据 
     { 
@@ -159,22 +159,22 @@ int  cs_communcate(void)
         p_server = server_data;  
         while (deal_lenth < re_recv) //当还有接收到的数据未处理完时 
         {  
-            if ((*p_server == IAC) && (*(p_server + 1) != IAC) )   //判断接收到的是否为协商语句（请求或应答，实际上因client未发送请求所以不可能为应答）  
+            if (((unsigned char) *p_server == IAC) && ((unsigned char) *(p_server + 1) != IAC) )   //判断接收到的是否为协商语句（请求或应答，实际上因client未发送请求所以不可能为应答）  
             {  
                 memcpy(server_negonation, p_server, NEGONATION_LENTH); //缓存协商语句   
                 deal_telnet_protocol(server_negonation);  //处理每条服务器发来的协商语句  
-  
                 p_server += NEGONATION_LENTH;  
                 deal_lenth += NEGONATION_LENTH;  
             }  
             else                                                 //如果是服务器发来的数据则把它显示到终端上  
             {
-    putc(*p_server,stdout);
+		//printf("%d\n",(unsigned char) *p_server);
+		putc(*p_server,stdout);
                 deal_lenth++;
                 p_server++;
             }  
         }
-	cout<<flush;//缓冲区的刷新
+	//cout<<flush;//缓冲区的刷新
         const char *UsernamePrompt ="Username:";
 	const char *PasswordPrompt ="Password:";
 	const char *SuperPasswordPrompt ="Password:";
