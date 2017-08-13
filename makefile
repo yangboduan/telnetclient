@@ -1,8 +1,8 @@
 CPP      = g++
 CC       = gcc
 CFLAGS   = -std=gnu++0x
-OBJ      = main.o
-LINKOBJ  = main.o
+OBJ      = main.o telnetclient.o
+LINKOBJ  = main.o telnetclient.o
 BIN      = telnetclient
 RM       = rm -rf
 LIB	 = 
