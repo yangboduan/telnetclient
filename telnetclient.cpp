@@ -34,6 +34,7 @@ using namespace std;
 #define STD_IN 0  //标准输入输出文件描述符  
 #define STD_OUT 1  //标准输入输出文件描述符  
   
+	int IsUserMode = 0; //是否为已经为用户模式，初始化为0，即为非用户模式
 unsigned char echo_status = 0; //回显状态  
 int sockfd = -1;  //SOCKET文件描述  
 int telnet_connect = 0; //TELNET通断控制变量  
@@ -168,44 +169,48 @@ int  cs_communcate(void)
             }  
             else                                                 //如果是服务器发来的数据则把它显示到终端上  
             {
-	putc(*p_server,stdout);
+    putc(*p_server,stdout);
                 deal_lenth++;
                 p_server++;
             }  
         }
-    cout<<flush;//缓冲区的刷新
+	cout<<flush;//缓冲区的刷新
         const char *UsernamePrompt ="Username:";
-    const char *PasswordPrompt ="Password:";
-    const char *UserModepPrompt=">";
-    const char *PrivilegeMiodepPrompt="#";
-        if (strstr(server_data,UsernamePrompt))//如果检测到“Username:提示符”
+	const char *PasswordPrompt ="Password:";
+	const char *SuperPasswordPrompt ="Password:";
+	const char *UserModepPrompt=">";
+	const char *PrivilegeMiodepPrompt="#";
+        if (strstr(server_data,UsernamePrompt))     //如果检测到“Username:”提示符
         {
-        send(sockfd, "admin\n", strlen("admin\n"), 0); //发送账号
+	    send(sockfd, "admin\n", strlen("admin\n"), 0); //发送账号
         }
-        if (strstr(server_data,PasswordPrompt))//如果检测到“Username:提示符”
+	
+        if (strstr(server_data,PasswordPrompt))     //如果检测到“Password:”提示符
         {
-        send(sockfd, "cisco\n", strlen("cisco\n"), 0); //发送账号
+	    if ( IsUserMode == 0 )
+		send(sockfd, "cisco\n", strlen("cisco\n"), 0); //发送密码
         }
-        if (strstr(server_data,UserModepPrompt))//如果检测到“Username:提示符”
+	
+	    if (strstr(server_data,UserModepPrompt))	//如果检测到“>”提示符
         {
-        send(sockfd, "enable\n", strlen("enable\n"), 0); //发送账号
+	    send(sockfd, "enable\n", strlen("enable\n"), 0); //发送账号
+	    IsUserMode = 1;
         }
-        if (strstr(server_data,PrivilegeMiodepPrompt))//如果检测到“Username:提示符”
+	
+	if (strstr(server_data,SuperPasswordPrompt))     //如果检测到“Password:”提示符
         {
-        send(sockfd, "show run\n", strlen("show run\n"), 0); //发送账号
+	    if ( IsUserMode == 1 )
+		send(sockfd, "cisco123\n", strlen("cisco123\n"), 0); //发送密码
         }
+	
+        if (strstr(server_data,PrivilegeMiodepPrompt))	//如果检测到“#”提示符
+        {
+	    send(sockfd, "show run\n", strlen("show run\n"), 0); //发送账号
+        }
+	
         cout<<flush;//缓冲区的刷新
-    memset(server_data,0,MAX_RECEIVE);//清空缓存区的数据，防止之前遗留在缓存区的数据影响输出结果的正确性
+	memset(server_data,0,MAX_RECEIVE);//清空缓存区的数据，防止之前遗留在缓存区的数据影响输出结果的正确性
     }  
-    /*
-    send(sockfd, "cisco\n", strlen("cisco\n"), 0); 
-    send(sockfd, "en\n", strlen("en\n"), 0); 
-    send(sockfd, "cisco\n", strlen("cisco\n"), 0); 
-    send(sockfd, "show run\n", strlen("show run\n"), 0);
-    */ 
-    const char *password ="";
-    //cout <<"weizhi:"<<strstr(server_data,username)<<endl;
-    //cout<<"-----------:"<<server_data<<endl;
-    return 0;  
+        return 0;  
       
 }  
